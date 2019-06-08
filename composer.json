@@ -1,0 +1,20 @@
+{
+    "name": "bjoluc/wordcrumbs",
+    "description": "Automatically generate breadcrumbs HTML code on any WordPress page",
+    "type": "library",
+    "minimum-stability" : "dev",
+    "license": "GPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "bjoluc",
+            "email": "25661029+bjoluc@users.noreply.github.com"
+        }
+    ],
+    "homepage": "https://github.com/bjoluc/wordcrumbs",
+    "autoload": {
+        "psr-4": {
+            "bjoluc\\WordCrumbs\\": "src/"
+        }
+    },
+    "require": {}
+}
