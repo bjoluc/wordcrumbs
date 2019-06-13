@@ -1,22 +1,20 @@
 <?php
 /**
- * A Formatter implementation for Zurb Foundation breadcrumbs
+ * The WordCrumbs FoundationFormatter class
  *
  * @author bjoluc <25661029+bjoluc@users.noreply.github.com>
  * @version 1.0.0
  *
- * @license GPL
+ * @license GPL-3.0-or-later
  */
 
 namespace bjoluc\WordCrumbs\Formatters;
 
 /**
- * TODO
+ * A Formatter implementation for the Zurb Foundation breadcrumbs component
  */
 class FoundationFormatter extends HtmlListFormatter
 {
-    protected $_separator;
-
     protected $_navClasses;
 
     /**
@@ -30,22 +28,29 @@ class FoundationFormatter extends HtmlListFormatter
         $this->_navClasses = implode(' ', $navClasses);
     }
 
-    public function getPreList()
+    public function getPre()
     {
-        $tag = '<nav aria-label="You are here:" role="navigation"';
+        $youAreHere = $this->_translator->trans('wordcrumbs.screen_reader.pre_breadcrumbs');
+        $tag = '<nav aria-label="' . $youAreHere . '" role="navigation"';
         if ($this->_navClasses !== '') {
             $tag .= ' class="' . $this->_navClasses . '"';
         }
-        return $tag . '>' . parent::getPreList();
+        return $tag . '>' . parent::getPre();
     }
 
-    public function getPostList()
+    public function getPost()
     {
-        return parent::getPostList() . '</nav>';
+        return parent::getPost() . '</nav>';
     }
 
     public function getBreadcrumb($breadcrumb)
     {
-        return ($breadcrumb->active ? '<span class="show-for-sr">Aktive Seite: </span>' : '') . $breadcrumb->title;
+        if ($breadcrumb->active) {
+            return '<span class="show-for-sr">' .
+            $this->_translator->trans('wordcrumbs.screen_reader.current_page') .
+            '</span>' . $breadcrumb->title;
+        } else {
+            return $breadcrumb->title;
+        }
     }
 }

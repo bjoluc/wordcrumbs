@@ -1,51 +1,43 @@
 <?php
 /**
- * The WordCrumbs Formatter base class
+ * The WordCrumbs FormatterInterface
  *
  * @author bjoluc <25661029+bjoluc@users.noreply.github.com>
  * @version 1.0.0
  *
- * @license GPL
+ * @license GPL-3.0-or-later
  */
 
 namespace bjoluc\WordCrumbs\Formatters;
 
 /**
- * TODO
+ * Specifies the methods of a Formatter. Formatters are used by the WordCrumb
+ * `format()` method to convert a list of Breadcrumb objects into a string.
  */
-class Formatter
+interface FormatterInterface
 {
-    protected $_separator;
-
     /**
-     * Initialize a new Formatter.
+     * Is called by the WordCrumbs class before using the formatter.
      *
-     * @param string $separator An arbitrary string that is used as a separator between breadcrumbs
+     * @param Symfony\Component\Translation\Translator $translator The Symfony
+     *        Translator instance used for translations
+     * @return void
      */
-    public function __construct($separator = '')
-    {
-        $this->_separator = $separator;
-    }
+    public function setTranslator($translator);
 
     /**
      * Is called before the breadcrumbs are formatted.
      *
      * @return string A string to be prepended, e.g. an opening HTML list tag
      */
-    public function getPreList()
-    {
-        return '';
-    }
+    public function getPre();
 
     /**
      * Is called after the breadcrumbs have been formatted.
      *
      * @return string A string to be appended, e.g. a closing HTML list tag
      */
-    public function getPostList()
-    {
-        return '';
-    }
+    public function getPost();
 
     /**
      * Is called when a breadcrumb is formatted, before its name is added.
@@ -55,10 +47,7 @@ class Formatter
      *
      * @return string A string to be prepended to the breadcrumb's name, e.g. an opening HTML anchor tag
      */
-    public function getPreBreadcrumb($breadcrumb, $isLast)
-    {
-        return '';
-    }
+    public function getPreBreadcrumb($breadcrumb, $isLast);
 
     /**
      * Is called when a breadcrumb is formatted, after its name has been added.
@@ -68,20 +57,13 @@ class Formatter
      *
      * @return string A string to be appended to the breadcrumb's name, e.g. a closing HTML anchor tag
      */
-    public function getPostBreadcrumb($breadcrumb, $isLast)
-    {
-        return !$isLast ? $this->_separator : '';
-    }
+    public function getPostBreadcrumb($breadcrumb, $isLast);
 
     /**
-     * Is called to format a breadcrumb. In its default implementation returns
-     * the breadcrumb's title.
+     * Is called to format a breadcrumb.
      *
-     * @param Breadcrumb $breadcrumb
+     * @param Breadcrumb $breadcrumb The Breadcrumb to be formatted
      * @return string The string resulting from the provided Breadcrumb object
      */
-    public function getBreadcrumb($breadcrumb)
-    {
-        return $breadcrumb->title;
-    }
+    public function getBreadcrumb($breadcrumb);
 }

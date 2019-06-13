@@ -5,7 +5,7 @@
  * @author bjoluc <25661029+bjoluc@users.noreply.github.com>
  * @version 1.0.0
  *
- * @license GPL
+ * @license GPL-3.0-or-later
  */
 
 namespace bjoluc\WordCrumbs\Formatters;
@@ -13,7 +13,7 @@ namespace bjoluc\WordCrumbs\Formatters;
 /**
  * A Formatter that produces an HTML list whose entries are breadcrumb names,
  * wrapped in <a> tags. If a breadcrumb is marked as active or does not have an
- * url, a <span> tag is used instead of the <a>.
+ * url, <span> is used instead of <a>.
  *
  * @since 1.0.0
  */
@@ -24,7 +24,7 @@ class HtmlListFormatter extends HtmlFormatter
     protected $_listEntryClasses;
 
     /**
-     * Creates a new HtmlListFormatter.
+     * Initialize a new HtmlListFormatter.
      *
      * @param string[] $anchorClasses (optional) An array of css classes that
      *        are added to the HTML anchor (or span) tags that wrap breadcrumbs
@@ -40,18 +40,18 @@ class HtmlListFormatter extends HtmlFormatter
         $this->_listEntryClasses = implode(' ', $listEntryClasses);
     }
 
-    public function getPreList()
+    public function getPre()
     {
         $tag = '<ul';
         if ($this->_listClasses !== '') {
             $tag .= ' class="' . $this->_listClasses . '"';
         }
-        return $tag . '>' . parent::getPreList();
+        return $tag . '>';
     }
 
-    public function getPostList()
+    public function getPost()
     {
-        return parent::getPostList() . '</ul>';
+        return '</ul>';
     }
 
     public function getPreBreadcrumb($breadcrumb, $isLast)

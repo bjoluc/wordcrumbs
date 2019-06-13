@@ -5,26 +5,26 @@
  * @author bjoluc <25661029+bjoluc@users.noreply.github.com>
  * @version 1.0.0
  *
- * @license GPL
+ * @license GPL-3.0-or-later
  */
 
 namespace bjoluc\WordCrumbs\Formatters;
 
 /**
- * A Formatter that wraps breadcrumb names in <a> tags and separates breadcrumbs
- * by a separator string. If a breadcrumb is marked as active or does not have
- * an url, a <span> tag is used instead of the <a>.
+ * A Formatter that wraps breadcrumb names in <a> tags and optionally separates
+ * breadcrumbs by a separator string. If a breadcrumb is marked as active or
+ * does not have an url, <span> is used instead of <a>.
  *
  * @since 1.0.0
  */
-class HtmlFormatter extends Formatter
+class HtmlFormatter extends PlainFormatter
 {
     protected $_anchorClasses;
 
     private $__currentBreadcrumbHasLink;
 
     /**
-     * Creates a new HtmlFormatter.
+     * Initialize a new HtmlFormatter.
      *
      * @param string $separator (optional) An arbitrary string that is used as a
      *        separator between breadcrumbs
