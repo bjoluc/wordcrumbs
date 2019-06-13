@@ -5,180 +5,536 @@
  * @author bjoluc <25661029+bjoluc@users.noreply.github.com>
  * @version 1.0.0
  *
- * @license GPL
- *
- *
- * TODO for publishing:
- *      * Enable or disable custom taxonomies
- *      * Enable or disable custom post types
- *      * Switch to english and include german translation
+ * @license GPL-3.0-or-later
  */
 
 namespace bjoluc\WordCrumbs;
 
+use Symfony\Component\Translation\Loader\YamlFileLoader;
+use Symfony\Component\Translation\Translator;
+
 class WordCrumbs
 {
-    private $__homeName;
+    protected $_homeName;
 
-    private $__breadcrumbs;
+    protected $_homeLink;
+
+    protected $_breadcrumbs;
+
+    protected $_translator;
+
+    protected $_allCustomTaxonomiesEnabled = false;
+
+    protected $_enabledCustomTaxonomies = [];
+
+    protected $_allCustomPostTypesEnabled = false;
+
+    protected $_enabledCustomPostTypes = [];
+
+    protected $_termListPagesEnabledForAllTaxonomies = false;
+
+    protected $_taxonomiesWithTermListPages = [];
+
+    protected $_categoriesEnabled = true;
+
+    protected $_postsEnabled = true;
+
+    protected $_pagesEnabled = true;
+
+    protected $_searchEnabled = true;
+
+    protected $_error404Enabled = true;
+
+    protected $_tagsEnabled = true;
+
+    protected $_datesEnabled = true;
+
+    protected $_attachmentsEnabled = true;
 
     /**
      * Creates a new WordCrumbs object.
      *
-     * @param boolean $detectOnConstruction (optional) Whether to call
-     *        {@link detect} on construction. Defaults to `false`.
-     * @param string $homeName (optional) The name of the "Home" breadcrumb.
-     *        Defaults to 'Home'.
+     * @param string $locale (optional) The locale to be used. Defaults to the
+     *        result of get_locale(). If the corresponding locale file is not
+     *        found, en_US is used as a fallback.
      */
-    public function __construct($detectOnConstruction = false, $homeName = 'Home')
+    public function __construct($locale = null)
     {
-        $this->__homeName = $homeName;
-        $this->__breadcrumbs = [];
-
-        if ($detectOnConstruction) {
-            $this->detect();
+        if ($locale === null) {
+            $locale = get_locale();
         }
+
+        $localeFile = __DIR__ . "/../locales/$locale.yaml";
+
+        $this->_translator = new Translator($locale);
+        $this->_translator->addLoader('yaml', new YamlFileLoader());
+        if (file_exists($localeFile)) {
+            $this->_translator->addResource('yaml', $localeFile, $locale);
+        }
+        $this->_translator->setFallbackLocales(['en_US']);
+        $this->_translator->addResource('yaml', __DIR__ . "/../locales/en_US.yaml", 'en_US');
+
+        $this->_homeName = $this->_translator->trans('wordcrumbs.home');
+        $this->_breadcrumbs = [];
     }
 
     /**
-     * Set the name of the "Home" breadcrumb.
+     * Set the name of the "Home" breadcrumb (defaults to 'Home' or its
+     * respective translation).
      *
      * @param string $homeName The name of the "Home" breadcrumb
      * @return void
      */
     public function setHomeName($homeName)
     {
-        $this->__homeName = $homeName;
+        $this->_homeName = $homeName;
     }
 
     /**
-     * Uses WordPress builtin functions to detect the page hierarchy and add
-     * breadcrumbs accordingly.
+     * Disables the generation of breadcrumbs for posts. Custom post types are
+     * not affected.
      *
-     * Based on the spaghetti code at
+     * @return void
+     */
+    public function disablePosts()
+    {
+        $this->_postsEnabled = false;
+    }
+
+    /**
+     * Disables the generation of breadcrumbs for pages.
+     *
+     * @return void
+     */
+    public function disablePages()
+    {
+        $this->_pagesEnabled = false;
+    }
+
+    /**
+     * Disables the generation of breadcrumbs for Categories. Custom taxonomies
+     * are not affected.
+     *
+     * @return void
+     */
+    public function disableCategories()
+    {
+        $this->_categoriesEnabled = false;
+    }
+
+    /**
+     * Disables the generation of breadcrumbs for search results pages.
+     *
+     * @return void
+     */
+    public function disableSearch()
+    {
+        $this->_searchEnabled = false;
+    }
+
+    /**
+     * Disables the generation of breadcrumbs on the 404 error page.
+     *
+     * @return void
+     */
+    public function disableError404()
+    {
+        $this->_error404Enabled = false;
+    }
+
+    /**
+     * Disables the generation of breadcrumbs for tag archives.
+     *
+     * @return void
+     */
+    public function disableTags()
+    {
+        $this->_tagsEnabled = false;
+    }
+
+    /**
+     * Disables the generation of breadcrumbs for date archives.
+     *
+     * @return void
+     */
+    public function disableDates()
+    {
+        $this->_datesEnabled = false;
+    }
+
+    /**
+     * Disables the generation of breadcrumbs for attachments.
+     *
+     * @return void
+     */
+    public function disableAttachments()
+    {
+        $this->_attachmentsEnabled = false;
+    }
+
+    /**
+     * By default, breadcrumbs for custom taxonomy terms are disabled. Call this
+     * method to enable them for the terms of either all or specific custom
+     * taxonomies.
+     *
+     * @param string[] $taxonomyNames (optional) The names of the custom
+     *        taxonomies for which to enable breadcrumbs. If left out,
+     *        breadcrumbs will be enabled for all custom taxonomies.
+     * @return void
+     */
+    public function enableCustomTaxonomies(array $taxonomyNames = null)
+    {
+        if ($taxonomyNames === null) {
+            $this->_allCustomTaxonomiesEnabled = true;
+        } else {
+            $this->_enabledCustomTaxonomies = $taxonomyNames;
+        }
+    }
+
+    /**
+     * By default, breadcrumbs for custom post types are disabled (no
+     * breadcrumbs will be checkPagination for posts with a custom post type). Call
+     * this method to enable breadcrumbs for either all or specific custom post
+     * types.
+     *
+     * @param string[] $postTypes (optional) The names of the custom post types
+     *        for which to enable breadcrumbs. If left out, breadcrumbs will be
+     *        enabled for all custom post types.
+     * @return void
+     */
+    public function enableCustomPostTypes(array $postTypes = null)
+    {
+        if ($postTypes === null) {
+            $this->_allCustomPostTypesEnabled = true;
+        } else {
+            $this->_enabledCustomPostTypes = $postTypes;
+        }
+    }
+
+    /**
+     * Enables linked taxonomy breadcrumbs for all or specific taxonomies. For
+     * example if you have a page at /colors where terms of the taxonomy 'color'
+     * are listed and you call enableTermListPages() or
+     * enableTermListPages(['color']), color terms will have the breadcrumb
+     * 'Colors' linking to /color.
+     *
+     * @param string[] $taxonomyNames (optional) The names of taxonomies for
+     *        which you have term list pages. If omitted, applies to all
+     *        taxonomies.
+     * @return void
+     */
+    public function enableTermListPages($taxonomyNames = null)
+    {
+        if ($taxonomyNames == null) {
+            $this->_termListPagesEnabledForAllTaxonomies = true;
+        } else {
+            $this->_taxonomiesWithTermListPages = $taxonomyNames;
+        }
+    }
+
+    /**
+     * Returns whether breadcrumbs are enabled for the provided taxonomy.
+     *
+     * @param string $taxonomyName The name of the taxonomy to check for
+     * @return boolean
+     */
+    protected function _isEnabledTaxonomy($taxonomyName)
+    {
+        if ($taxonomyName === 'category') {
+            return $this->_categoriesEnabled;
+        }
+        return $this->_allCustomTaxonomiesEnabled || in_array($taxonomyName, $this->_enabledCustomTaxonomies);
+    }
+
+    /**
+     * Returns whether breadcrumbs are enabled for the provided post type.
+     *
+     * @param string $postType The name of the post type to check for
+     * @return boolean
+     */
+    protected function _isEnabledPostType($postType)
+    {
+        if ($postType === 'post') {
+            return $this->_postsEnabled;
+        }
+        return $this->_allCustomPostTypesEnabled || in_array($postType, $this->_enabledCustomPostTypes);
+    }
+
+    /**
+     * Returns whether the provided custom taxonomy has a term list page.
+     *
+     * @param string $taxonomyName The name of the custom taxonomy to check for
+     * @return boolean
+     */
+    protected function _isTaxonomyWithTermListPage($taxonomyName)
+    {
+        return $this->_termListPagesEnabledForAllTaxonomies || in_array($taxonomyName, $this->_taxonomiesWithTermListPages);
+    }
+
+    /**
+     * Uses WordPress functions to detect the page hierarchy and add breadcrumbs
+     * accordingly.
+     *
+     * A clean, enhanced rewrite of the code at
      * https://blog.kulturbanause.de/2011/08/wordpress-breadcrumb-navigation-ohne-plugin/
      *
      * @return void
      */
     public function detect()
     {
+
         if (!(is_home() || is_front_page()) || is_paged()) {
-            $this->__detectPage();
-            $this->__detectPagination();
+            $checkPagination = false;
+
+            if (is_home()) {
+                $this->_addHome();
+                $checkPagination = true;
+            } elseif (is_category()) {
+                if ($this->_categoriesEnabled) {
+                    $this->_processCategoryArchive();
+                    $checkPagination = true;
+                }
+            } elseif (is_search()) {
+                if ($this->_searchEnabled) {
+                    $this->_processSearch();
+                    $checkPagination = true;
+                }
+            } elseif (is_tag()) {
+                if ($this->_tagsEnabled) {
+                    $this->_processTag();
+                    $checkPagination = true;
+                }
+            } elseif (is_404()) {
+                if ($this->_error404Enabled) {
+                    $this->_processError404();
+                }
+            } elseif (is_day() || is_month() || is_year()) {
+                if ($this->_datesEnabled) {
+                    $this->_processDate();
+                    $checkPagination = true;
+                }
+            } elseif (is_attachment()) {
+                if ($this->_attachmentsEnabled) {
+                    $this->_processAttachment();
+                }
+            } elseif (is_tax()) {
+                $taxonomyName = get_query_var('taxonomy');
+                if ($this->_isEnabledTaxonomy($taxonomyName)) {
+                    $this->_processCustomTaxonomyArchive($taxonomyName);
+                    $checkPagination = true;
+                }
+
+            } elseif (is_page()) {
+                if ($this->_pagesEnabled) {
+                    $this->_processPage();
+                    $checkPagination = true;
+                }
+            } else {
+                $postType = get_post_type();
+                if (is_single()) {
+                    // Single post
+                    if ($postType == 'post') {
+                        // Default post type
+                        if ($this->_postsEnabled) {
+                            $this->_processSinglePost();
+                            $checkPagination = true;
+                        }
+                    } else {
+                        // Custom post type
+                        if ($this->_isEnabledPostType($postType)) {
+                            $this->_processSingleCustomTypePost($postType);
+                        }
+                    }
+                } else {
+                    // Custom post type archive (Non-custom archives have been
+                    // caught before)
+                    if ($this->_isEnabledPostType($postType)) {
+                        $checkPagination = $this->_processCustomPostTypeArchive();
+                    }
+                }
+            }
+
+            if ($checkPagination) {
+                $this->_processPagination();
+            }
         }
 
         // Mark the last breadcrumb as active
-        if (!empty($this->__breadcrumbs)) {
-            end($this->__breadcrumbs)->active = true;
-            reset($this->__breadcrumbs); // set the array pointer to the first element again
+        if (!empty($this->_breadcrumbs)) {
+            end($this->_breadcrumbs)->active = true;
+            reset($this->_breadcrumbs); // set the array pointer to the first element again
         }
     }
 
     /**
-     * Detects the breadcrumbs for the current page, but does not consider
-     * pagination
-     *
-     * Based on the spaghetti code at
-     * https://blog.kulturbanause.de/2011/08/wordpress-breadcrumb-navigation-ohne-plugin/
+     * Adds a home breadcrumb.
      *
      * @return void
      */
-    private function __detectPage()
+    protected function _addHome()
     {
-        $homeLink = get_bloginfo('url');
+        $this->createBreadcrumb($this->_homeName, get_home_url());
+    }
 
+    /**
+     * Called by `detect()` on category archive pages.
+     *
+     * @return void
+     */
+    protected function _processCategoryArchive()
+    {
+        $this->_addHome();
+        global $wp_query;
+        $this->_addTermAndParents(get_term($wp_query->get_queried_object()->term_id));
+    }
+
+    /**
+     * Called by `detect()` on search result pages.
+     *
+     * @return void
+     */
+    protected function _processSearch()
+    {
+        $this->_addHome();
+        $this->createBreadcrumb($this->_translator->trans('wordcrumbs.search_results', ['{keywords}' => get_search_query()]));
+    }
+
+    /**
+     * Called by `detect()` on tag archive pages.
+     *
+     * @return void
+     */
+    protected function _processTag()
+    {
+        $this->_addHome();
+        $this->createBreadcrumb($this->_translator->trans('wordcrumbs.tag', ['{tag}' => single_tag_title('', false)]));
+    }
+
+    /**
+     * Called by `detect()` on 404 pages.
+     *
+     * @return void
+     */
+    protected function _processError404()
+    {
+        $this->_addHome();
+        $this->createBreadcrumb($this->_translator->trans('wordcrumbs.error_404'));
+    }
+
+    /**
+     * Called by `detect()` on date archive pages.
+     *
+     * @return void
+     */
+    protected function _processDate()
+    {
+        $this->_addHome();
+        // Year
+        $year = get_the_time('Y');
+        $this->createBreadcrumb($year, get_year_link($year));
+
+        if (is_month() || is_day()) {
+            // Month of year
+            $month = get_the_time('m');
+            $this->createBreadcrumb(get_the_time('F'), get_month_link($year, $month));
+
+            if (is_day()) {
+                // Day
+                $day = get_the_time('d');
+                $this->createBreadcrumb($day, get_day_link($year, $month, $day));
+            }
+        }
+    }
+
+    /**
+     * Called by `detect()` on attachment pages.
+     *
+     * @return void
+     */
+    protected function _processAttachment()
+    {
+        $this->_addHome();
+        $parent = get_post($post->post_parent);
+        $category = get_the_category($parent->ID)[0];
+        $this->_addTermAndParents($category);
+        $this->createBreadcrumb($parent->post_title, get_permalink($parent));
+        $this->createBreadcrumb(get_the_title());
+    }
+
+    /**
+     * Called by `detect()` on custom taxonomy archive pages.
+     *
+     * @return void
+     */
+    protected function _processCustomTaxonomyArchive($taxonomyName)
+    {
+        $this->_addHome();
+        $taxonomy = get_taxonomy($taxonomyName);
+
+        $termListBreadcrumb = new Breadcrumb($taxonomy->labels->name);
+        if ($this->_isTaxonomyWithTermListPage($taxonomyName)) {
+            $termListBreadcrumb->url = get_site_url() . '/' . $taxonomy->rewrite['slug'] . '/';
+        }
+        $this->addBreadcrumb($termListBreadcrumb);
+
+        $term = get_term_by('slug', get_query_var('term'), $taxonomyName);
+        $this->_addTermAndParents($term, $taxonomyName);
+    }
+
+    /**
+     * Called by `detect()` on WordPress pages.
+     *
+     * @return void
+     */
+    protected function _processPage()
+    {
+        $this->_addHome();
         global $post;
-        $this->createBreadcrumb($this->__homeName, $homeLink);
+        $this->_addPageAndParents($post);
+    }
 
-        if (is_search()) {
-            $this->createBreadcrumb('Suchergebnisse für "' . get_search_query() . '"');
-            return;
+    /**
+     * Called by `detect()` on custom post archive pages.
+     *
+     * @return void
+     */
+    protected function _processCustomPostTypeArchive()
+    {
+        $this->_addHome();
+        $post_type = get_post_type_object(get_post_type());
+        $this->createBreadcrumb($post_type->labels->name);
+    }
+
+    /**
+     * Called by `detect()` on single post pages.
+     *
+     * @return void
+     */
+    protected function _processSinglePost()
+    {
+        $this->_addHome();
+        $deepestCategories = $this->_getDeepestTerms(get_the_category());
+        $this->_addTermAndParents($deepestCategories[0]);
+        $this->createBreadcrumb(get_the_title());
+    }
+
+    /**
+     * Called by `detect()` on single post pages with a custom post type.
+     *
+     * @return void
+     */
+    protected function _processSingleCustomTypePost($postType)
+    {
+        $this->_addHome();
+
+        $postType = get_post_type_object($postType);
+        $archiveBreadcrumb = new Breadcrumb($postType->labels->name);
+        if ($postType->has_archive) {
+            $archiveBreadcrumb->url = get_site_url() . '/' . $postType->rewrite['slug'] . '/';
         }
+        $this->addBreadcrumb($archiveBreadcrumb);
 
-        if (is_tag()) {
-            $this->createBreadcrumb('Beiträge mit dem Schlagwort "' . single_tag_title('', false) . '"');
-            return;
-        }
-
-        if (is_404()) {
-            $this->createBreadcrumb('Fehler 404');
-            return;
-        }
-
-        if (is_category()) {
-            global $wp_query;
-            $this->__addTermAndParents(get_term($wp_query->get_queried_object()->term_id));
-            return;
-        }
-
-        if (is_day() || is_month() || is_year()) {
-            // Year
-            $year = get_the_time('Y');
-            $this->createBreadcrumb($year, get_year_link($year));
-
-            if (is_month() || is_day()) {
-                // Month of year
-                $month = get_the_time('m');
-                $this->createBreadcrumb(get_the_time('F'), get_month_link($year, $month));
-
-                if (is_day()) {
-                    // Day
-                    $day = get_the_time('d');
-                    $this->createBreadcrumb($day, get_day_link($year, $month, $day));
-                }
-            }
-            return;
-        }
-
-        if (is_attachment()) {
-            $parent = get_post($post->post_parent);
-            $category = get_the_category($parent->ID)[0];
-            $this->__addTermAndParents($category);
-            $this->createBreadcrumb($parent->post_title, get_permalink($parent));
-            $this->createBreadcrumb(get_the_title());
-            return;
-        }
-
-        // Custom taxonomy archive pages
-        if (is_tax()) {
-            $taxonomyName = get_query_var('taxonomy');
-            $taxonomy = get_taxonomy($taxonomyName);
-            $taxonomySlug = $taxonomy->rewrite['slug'];
-            $this->createBreadcrumb($taxonomy->labels->name, "$homeLink/$taxonomySlug/");
-
-            $term = get_term_by('slug', get_query_var('term'), $taxonomyName);
-            $this->__addTermAndParents($term, $taxonomyName);
-
-            return;
-        }
-
-        // Pages
-        if (is_page()) {
-            $this->__addPageAndParents($post);
-            return;
-        }
-
-        // Single post pages
-        if (is_single()) {
-            if (get_post_type() != 'post') {
-                // Posts with custom post types
-                $post_type = get_post_type_object(get_post_type());
-                $slug = $post_type->rewrite['slug'];
-                $this->createBreadcrumb($post_type->labels->name, "$homeLink/$slug/");
-            } else {
-                // Posts
-                $deepestCategories = $this->__getDeepestTerms(get_the_category());
-                $this->__addTermAndParents($deepestCategories[0]);
-            }
-            $this->createBreadcrumb(get_the_title());
-        } else {
-            // Archive pages with custom post types
-            if (get_post_type() != 'post') {
-                $post_type = get_post_type_object(get_post_type());
-                $this->createBreadcrumb($post_type->labels->name);
-                return;
-            }
-        }
+        $this->createBreadcrumb(get_the_title());
     }
 
     /**
@@ -186,11 +542,11 @@ class WordCrumbs
      *
      * @return void
      */
-    private function __detectPagination()
+    protected function _processPagination()
     {
-        if (get_query_var('paged')) {
-            $this->createBreadcrumb('Seite ' . get_query_var('paged'));
-            return;
+        $page = get_query_var('paged');
+        if ($page) {
+            $this->createBreadcrumb($this->_translator->trans('wordcrumbs.pagination', ['page' => $page]));
         }
     }
 
@@ -200,7 +556,7 @@ class WordCrumbs
      * @param WP_Term $term The term whose parents shall be iterated over
      * @return void
      */
-    private function __addTermAndParents($term, $taxonomy = 'category')
+    protected function _addTermAndParents($term, $taxonomy = 'category')
     {
         $breadcrumbs = [];
         while ($term) {
@@ -221,7 +577,7 @@ class WordCrumbs
      * @param WP_Post $page The page whose parents shall be iterated over
      * @return void
      */
-    private function __addPageAndParents($page)
+    protected function _addPageAndParents($page)
     {
         $breadcrumbs = [];
         while ($page) {
@@ -243,7 +599,7 @@ class WordCrumbs
      * @param WP_Term[] $terms
      * @return WP_Term[]
      */
-    private function __getDeepestTerms($terms)
+    protected function _getDeepestTerms($terms)
     {
         $terms_by_id = [];
         foreach ($terms as $term) {
@@ -265,7 +621,7 @@ class WordCrumbs
      */
     public function addBreadcrumb($breadcrumb)
     {
-        $this->__breadcrumbs[] = $breadcrumb;
+        $this->_breadcrumbs[] = $breadcrumb;
     }
 
     /**
@@ -281,16 +637,16 @@ class WordCrumbs
         if ($reverse) {
             $breadcrumbs = array_reverse($breadcrumbs);
         }
-        $this->__breadcrumbs = array_merge($this->__breadcrumbs, $breadcrumbs);
+        $this->_breadcrumbs = array_merge($this->_breadcrumbs, $breadcrumbs);
     }
 
     /**
      * Creates a new breadcrumb with the parameters passed and adds it to the
-     * breadcrumb list.
+     * breadcrumbs list.
      *
      * @param string $title The breadcrumb's title
      * @param string $url The url that the breadcrumb links to
-     * @return Breadcrumb The newly created Breadcrumb object
+     * @return Breadcrumb The new Breadcrumb object
      */
     public function createBreadcrumb($title, $url = '')
     {
@@ -303,26 +659,27 @@ class WordCrumbs
      * Uses the passed Formatter to generate a string from this instance's
      * breadcrumbs.
      *
-     * @param Formatters\Formatter $formatter
+     * @param Formatters\FormatterInterface $formatter
      * @return string The resulting breadcrumbs string (plain text or HTML,
      *         depending on the Formatter)
      */
     public function format($formatter)
     {
-        if (empty($this->__breadcrumbs)) {
+        if (empty($this->_breadcrumbs)) {
             return '';
         }
 
-        $output = $formatter->getPreList();
+        $formatter->setTranslator($this->_translator);
+        $output = $formatter->getPre();
 
-        $lastIndex = count($this->__breadcrumbs) - 1;
-        foreach ($this->__breadcrumbs as $index => $breadcrumb) {
+        $lastIndex = count($this->_breadcrumbs) - 1;
+        foreach ($this->_breadcrumbs as $index => $breadcrumb) {
             $isLast = ($index == $lastIndex);
             $output .= $formatter->getPreBreadcrumb($breadcrumb, $isLast);
             $output .= $formatter->getBreadcrumb($breadcrumb);
             $output .= $formatter->getPostBreadcrumb($breadcrumb, $isLast);
         }
 
-        return $output . $formatter->getPostList();
+        return $output . $formatter->getPost();
     }
 }
