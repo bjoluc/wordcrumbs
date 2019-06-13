@@ -5,7 +5,7 @@
  * @author bjoluc <25661029+bjoluc@users.noreply.github.com>
  * @version 1.0.0
  *
- * @license GPL
+ * @license GPL-3.0-or-later
  */
 
 namespace bjoluc\WordCrumbs;
