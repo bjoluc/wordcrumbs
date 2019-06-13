@@ -454,6 +454,7 @@ class WordCrumbs
     protected function _processAttachment()
     {
         $this->_addHome();
+        global $post;
         $parent = get_post($post->post_parent);
         $category = get_the_category($parent->ID)[0];
         $this->_addTermAndParents($category);
