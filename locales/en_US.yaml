@@ -1,0 +1,9 @@
+wordcrumbs:
+  home: Home
+  search_results: Search results for "{keywords}"
+  tag: Posts tagged with "{tag}"
+  error_404: Error 404
+  pagination: Page {page}
+  screen_reader:
+    pre_breadcrumbs: You are here:
+    current_page: Current Page:

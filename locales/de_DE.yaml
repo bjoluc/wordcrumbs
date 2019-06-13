@@ -1,0 +1,9 @@
+wordcrumbs:
+  home: Start
+  search_results: Suchergebnisse für "{keywords}"
+  tag: Beiträge mit dem Schlagwort "{tag}"
+  error_404: Fehler 404
+  pagination: Seite {page}
+  screen_reader:
+    pre_breadcrumbs: Sie sind hier:
+    current_page: Aktive Seite:

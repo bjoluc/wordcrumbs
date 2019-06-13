@@ -16,5 +16,8 @@
             "bjoluc\\WordCrumbs\\": "src/"
         }
     },
-    "require": {}
+    "require": {
+        "symfony/translation": "^5.0@dev",
+        "symfony/yaml": "^5.0@dev"
+    }
 }
