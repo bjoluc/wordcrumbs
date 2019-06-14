@@ -1,6 +1,6 @@
 {
     "name": "bjoluc/wordcrumbs",
-    "description": "Automatically generate breadcrumbs HTML code on any WordPress page",
+    "description": "A simple PHP package to add breadcrumbs on any WordPress site",
     "type": "library",
     "minimum-stability" : "dev",
     "license": "GPL-3.0-or-later",
@@ -17,6 +17,7 @@
         }
     },
     "require": {
+        "php": ">=5.4",
         "symfony/translation": "^5.0@dev",
         "symfony/yaml": "^5.0@dev"
     }
