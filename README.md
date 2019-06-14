@@ -5,11 +5,15 @@ Ever needed to add customized breadcrumbs to your WordPress theme without annoyi
 
 ## I want this, what do I have to do?
 
-If you do not use composer, [install](https://getcomposer.org/) it first. With composer installed, navigate to your theme's directory and run 
-``composer require bjoluc/wordcrumbs``.
+If you do not use composer, [install](https://getcomposer.org/) it first. With composer installed, navigate to your theme's directory and run
+```
+composer require bjoluc/wordcrumbs
+```
 
 If your theme is not already using the composer autoloader, require it in your `functions.php`:
-```require __DIR__ . '/vendor/autoload.php';```
+```
+require __DIR__ . '/vendor/autoload.php';
+```
 
 After that, for example in your theme's `header.php`, you can use WordCrumbs like this:
 ```php
