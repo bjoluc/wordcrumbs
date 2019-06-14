@@ -216,7 +216,7 @@ class WordCrumbs
      * example if you have a page at /colors where terms of the taxonomy 'color'
      * are listed and you call enableTermListPages() or
      * enableTermListPages(['color']), color terms will have the breadcrumb
-     * 'Colors' linking to /color.
+     * 'Colors' link to /color.
      *
      * @param string[] $taxonomyNames (optional) The names of taxonomies for
      *        which you have term list pages. If omitted, applies to all
