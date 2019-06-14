@@ -1,6 +1,6 @@
 <?php
 /**
- * The WordCrumbs BaseFormatter FormatterInterface implementation
+ * The abstract WordCrumbs BaseFormatter FormatterInterface implementation
  *
  * @author bjoluc <25661029+bjoluc@users.noreply.github.com>
  * @version 1.0.0
@@ -11,9 +11,9 @@
 namespace bjoluc\WordCrumbs\Formatters;
 
 /**
- * A base class for formatters that implements the FormatterInterface.
+ * An abstract base class for formatters that implements the FormatterInterface.
  */
-class BaseFormatter implements FormatterInterface
+abstract class BaseFormatter implements FormatterInterface
 {
     /**
      * The Symfony Translator instance used for translations
