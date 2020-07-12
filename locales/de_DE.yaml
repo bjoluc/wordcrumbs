@@ -5,5 +5,5 @@ wordcrumbs:
   error_404: Fehler 404
   pagination: Seite {page}
   screen_reader:
-    pre_breadcrumbs: Sie sind hier:
-    current_page: Aktive Seite:
+    pre_breadcrumbs: "Sie sind hier:"
+    current_page: "Aktive Seite:"
