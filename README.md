@@ -55,7 +55,7 @@ You can customize the HTML (or plain text) output in several ways. First, you ca
 * [PlainFormatter](src/Formatters/PlainFormatter.php)
 * [HtmlFormatter](src/Formatters/HtmlFormatter.php)
 * [HtmlListFormatter](src/Formatters/HtmlListFormatter.php)
-* [FoundationFormatter](src/Formatters/FoundationFormatter.php) (for [Zurb Foundation](https://foundation.zurb.com/))
+* [FoundationFormatter](src/Formatters/FoundationFormatter.php) (for [Zurb Foundation](https://get.foundation/))
 
 Second, all of these formatters support optional constructor arguments to modify their output (see the PHPDoc comments for details).
 
@@ -64,7 +64,7 @@ Third, you can extend any of these formatters (including the abstract [BaseForma
 ### Locales
 
 Locales are stored as yaml files in the [locales](locales) directory. The preferred locale can be passed as a string to the WordCrumbs constructor (e.g. `new WordCrumbs('de_DE')`). Otherwise, the WordPress function `get_locale()` is used to set the locale. If the respective locale file does not exist en_US is used as a fallback.
-Adding locales is as easy as copying [en_US.yaml](locales/en_US.yaml) and modifying the strings accordingly. If you add a locale please feel free to create a merge request or open an issue providing the yaml file contents. I will be glad to accept your request or add the file for you!
+Adding locales is as easy as copying [en_US.yaml](locales/en_US.yaml) and modifying the strings accordingly. If you add a locale, feel free to create a PR or open an issue providing the yaml file contents. I am happy to accept your request or add the file for you!
 
 ### In-depth modifications
 
